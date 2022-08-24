@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html>
+<head lang="zh_CN">
+	<meta charset="utf-8">
+	<title>树莓派小车</title>
+	<link rel="shortcut icon" type="image/x-icon" href="../images/raspberrypi.ico">
+    <link rel="stylesheet" href="../icons/iconfont.css">
+    <link rel="stylesheet" type="text/css" href="../styles/styleA.css" media="screen and (min-width: 1200px)">
+    <link rel="stylesheet" type="text/css" href="../styles/styleB.css" media="screen and (max-width: 1200px)">
+    <link rel="stylesheet" type="text/css" href="../styles/styleC.css" media="screen and (max-width: 800px)">
+    <script type="text/javascript" src="../scripts/jQuery.js"></script>
+    <script type="text/javascript" src="../scripts/menu.js"></script>
+    <link rel="stylesheet" href="../styles/prism.css"/>
+</head>
+
+<body>
+    <div id="container">
+    	<div class="head">
+    		<img class="headImg" src="../images/raspberrypi.png">
+    		<h1 class="headTitle">树莓派小车制作参考文档</h1>
+    		<div class="headNav">
+    			<ul>
+    				<li><a class="headList" style="color: #3F3F3FFC" href="#">小车制作</a></li>
+    				<li><a class="headList" href="../../algorithm/algorithm.html">算法学习</a></li>
+    			</ul>
+    		</div>
+    	</div>
+
+    	<div class="menu">
+            <div class="menuTitle">
+                <span class="iconfont icon-home"></span>
+                小车参考文档
+            </div>
+            <div class="menuNav">
+                <ul>
+                    <li class="list"><a href="../index.html"><span>关于参考文档</span><i class="iconfont nav-more"></i></a></li>
+                    <li class="list"><a href="indexB.html"><span>系统配置与安装</span><i class="iconfont nav-more"></i></a></li>
+                    <li class="list"><a href="indexC.html"><span>小车组装</span><i class="iconfont nav-more"></i></a></li>
+                    <li class="list now"><a href="#"><span>小车基本运动</span><i class="iconfont nav-more"></i></a>
+                      <ul>
+                        <li><a href="#sectionD1"><span>使用Tkinter控制</span></a></li>
+                        <li><a href="#sectionD2"><span>使用Html控制</span></a></li>
+                        <li><a href="#sectionD3"><span>使用WeChat控制</span></a></li>
+                        <li><a href="#sectionD4"><span>参考说明</span></a></li>
+                      </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="articals">
+        	<div class="artical" id="sectionD">
+                <div class="header"><h1>小车基本运动</h1></div>
+                <div class="main">
+                    <h2 id="sectionD1" class="show" >1.使用 Tkinter 控制</h2> 
+                    <p>由于tkinter需要调用图形界面，因此先要用vncviewer打开树莓派的界面，再打开图形界面中的命令行工具，输入代码启动car_tk才能运行。如果未安装tkinter库，请使用<code>sudo apt-get install python-tkinter</code>安装</p>
+                    <p>car_tk的代码如下所示：</p>
+<pre><code class="language-javascript line-numbers">import tkinter
+import RPi.GPIO as GPIO
+import atexit
+import time
+
+'''
+引脚说明,以树莓派所在处为前，USB朝向为左
+LEFT_FRONT_ENA = 38
+LEFT_FRONT_1 = 37
+LEFT_FRONT_2 = 35
+
+RIGHT_FRONT_ENA = 32
+RIGHT_FRONT_1 = 7
+RIGHT_FRONT_2 = 11
+
+LEFT_BEHIND_ENB = 40 
+LEFT_BEHIND_1 = 31
+LEFT_BEHIND_2 = 33
+
+RIGHT_BEHIND_ENB = 36 
+RIGHT_BEHIND_1 = 15
+RIGHT_BEHIND_2 = 13
+'''
+allGPIO = [38, 37, 35, 32, 7, 11, 40, 31, 33, 36, 15, 13]
+Enb_GPIO = [38, 32, 40, 36]
+ForwardOrBack_A = [37, 7, 31, 15]
+ForwardOrBack_B = [35, 11, 33, 13]
+LeftOrRight_A = [35, 7, 33, 15]
+LeftOrRight_B = [37, 11, 31, 13]
+# 初始化设置引脚输出
+
+
+def init():
+    atexit.register(GPIO.cleanup)
+    GPIO.setmode(GPIO.BOARD)  # 使用BOARD模式
+    GPIO.setup(allGPIO, GPIO.OUT)  # 引脚输出
+
+# 所有引脚置低电平，用于复位、停止运行的功能
+
+
+def reset():
+    GPIO.output(allGPIO, GPIO.LOW)
+
+
+def reset2(event):
+    GPIO.output(allGPIO, GPIO.LOW)
+
+# 起步
+
+
+def func_E(event):
+    # 控制车轮的GPIO
+    GPIO.output(ForwardOrBack_A, GPIO.HIGH)
+    GPIO.output(ForwardOrBack_B, GPIO.LOW)
+    # 控制使能端的GPIO
+    for i in range(4):
+        locals()['EN_'+str(i)] = GPIO.PWM(Enb_GPIO[i], 50)
+        locals()['EN_'+str(i)].start(20)
+
+    time.sleep(0.1)
+    reset()
+
+
+# 控制
+
+def func_W(event):
+    # 控制车轮的GPIO
+    GPIO.output(ForwardOrBack_A, GPIO.HIGH)
+    GPIO.output(ForwardOrBack_B, GPIO.LOW)
+    # 控制使能端的GPIO
+    for i in range(4):
+        locals()['EN_'+str(i)].ChangeDutyCycle(15)
+
+
+def func_S(event):
+    # 控制车轮的GPIO
+    GPIO.output(ForwardOrBack_A, GPIO.LOW)
+    GPIO.output(ForwardOrBack_B, GPIO.HIGH)
+    # 控制使能端的GPIO
+    for i in range(4):
+        locals()['EN_'+str(i)].ChangeDutyCycle(15)
+
+
+def func_A(event):
+    # 控制车轮的GPIO
+    GPIO.output(LeftOrRight_A, GPIO.HIGH)
+    GPIO.output(LeftOrRight_B, GPIO.LOW)
+    # 控制使能端的GPIO
+    for i in range(4):
+        locals()['EN_'+str(i)].ChangeDutyCycle(20)
+
+
+def func_D(event):
+    # 控制车轮的GPIO
+    GPIO.output(LeftOrRight_A, GPIO.LOW)
+    GPIO.output(LeftOrRight_B, GPIO.HIGH)
+    # 控制使能端的GPIO
+    for i in range(4):
+        locals()['EN_'+str(i)].ChangeDutyCycle(20)
+
+
+def func_Q(event):
+    reset()
+    for i in range(4):
+        locals()['EN_'+str(i)].stop()
+    GPIO.cleanup()
+
+# 建立窗口
+
+
+def window():
+    win = tkinter.Tk()
+    win.title("Run Car")
+    win.geometry("300x300+200+50")
+    '''
+        &lt;Button-1&gt; 鼠标左键
+        &lt;Button-2&gt;  鼠标滚轮
+        &lt;Button-1&gt;  鼠标右键
+        &lt;Double-Button-1&gt;  鼠标双击左键
+        &lt;Triple-Button-1&gt;  鼠标三击左键
+        &lt;ButtonRelease-1&gt; 释放鼠标左键
+        &lt;ButtonRelease-2&gt; 释放鼠标中键
+        &lt;ButtonRelease-3&gt; 释放鼠标右键
+    '''
+
+    button1 = tkinter.Button(win, text="Start", bg="Gainsboro")
+    # bind 给控件绑定数据（参数一是绑定的事件，参数二是触发事件的函数）
+    button1.bind("&lt;Button-1&gt;", func_E)
+    button1.bind("&lt;ButtonRelease-1&gt;", reset2)
+    button1.place(x=60, y=30, width=60, height=40)
+
+    button1 = tkinter.Button(win, text="Quit", bg="Gainsboro")
+    button1.bind("&lt;Button-1&gt;", func_Q)
+    button1.bind("&lt;ButtonRelease-1&gt;", reset2)
+    button1.place(x=180, y=30, width=60, height=40)
+
+    button1 = tkinter.Button(win, text="Forward", bg="Gainsboro")
+    button1.bind("&lt;Button-1&gt;", func_W)
+    button1.bind("&lt;ButtonRelease-1&gt;", reset2)
+    button1.place(x=120, y=100, width=60, height=40)
+
+    button1 = tkinter.Button(win, text="Left", bg="Gainsboro")
+    button1.bind("&lt;Button-1&gt;", func_A)
+    button1.bind("&lt;ButtonRelease-1&gt;", reset2)
+    button1.place(x=60, y=150, width=60, height=40)
+
+    button1 = tkinter.Button(win, text="Right", bg="Gainsboro")
+    button1.bind("&lt;Button-1&gt;", func_D)
+    button1.bind("&lt;ButtonRelease-1&gt;", reset2)
+    button1.place(x=180, y=150, width=60, height=40)
+
+    button1 = tkinter.Button(win, text="Back", bg="Gainsboro")
+    button1.bind("&lt;Button-1&gt;", func_S)
+    button1.bind("&lt;ButtonRelease-1&gt;", reset2)
+    button1.place(x=120, y=200, width=60, height=40)
+
+    win.mainloop()
+
+
+init()
+reset()
+window()</code></pre>
+                    <p>控制界面如下所示：</p>
+                    <img src="../images/tkinter.png">
+                    <hr/>
+
+                    <h2 id="sectionD2" class="show">2.使用 Html 控制</h2> 
+                    <p>使用html控制时仅需要启用 putty 进入树莓派的 Linux 界面，输入代码运行 car.py 文件，在手机或电脑端(手机和电脑控制的界面情况略有不同，建议使用电脑进行控制)输入相关地址(连接树莓派的 IP 加端口号，如10.15.140.115:8080)，即可控制树莓派。如果未安装bottle库，请使用<code>sudo apt-get install python-bottle</code>安装，相关控制文件如下所示：</p>
+                    <h4>python文件</h4>
+                    <p>car_web.py</p>
+<pre><code class="language-javascript line-numbers">#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
+import RPi.GPIO as GPIO
+import time
+import atexit
+from bottle import get, post, request, template, Bottle
+
+
+class DriveCar():
+    def __init__(self):
+        # Pins List
+        '''
+        LEFT_FRONT_ENA = 38
+        LEFT_FRONT_1 = 37
+        LEFT_FRONT_2 = 35
+
+        RIGHT_FRONT_ENA = 32
+        RIGHT_FRONT_1 = 7
+        RIGHT_FRONT_2 = 11
+
+        LEFT_BEHIND_ENB = 40 
+        LEFT_BEHIND_1 = 31
+        LEFT_BEHIND_2 = 33
+
+        RIGHT_BEHIND_ENB = 36 
+        RIGHT_BEHIND_1 = 15
+        RIGHT_BEHIND_2 = 13
+        '''
+        self.allGPIO = [38, 37, 35, 32, 7, 11, 40, 31, 33, 36, 15, 13]
+        self.Enb_GPIO = [38, 32, 40, 36]
+        self.ForwardOrBack_A = [37, 7, 31, 15]
+        self.ForwardOrBack_B = [35, 11, 33, 13]
+        self.LeftOrRight_A = [35, 7, 33, 15]
+        self.LeftOrRight_B = [37, 11, 31, 13]
+
+        atexit.register(GPIO.cleanup)       # Clean GPIO
+        GPIO.setmode(GPIO.BOARD)            # Set mode
+        GPIO.setup(self.allGPIO, GPIO.OUT)  # Output
+        self.reset()
+        for i in range(4):
+            globals()['EN_'+str(i)] = GPIO.PWM(self.Enb_GPIO[i], 50)
+            globals()['EN_'+str(i)].start(13)
+
+    def reset(self):
+        # Rest all the GPIO as LOW
+        GPIO.output(self.allGPIO, GPIO.LOW)
+
+    def forword(self):
+        # All wheels move forword
+        GPIO.output(self.ForwardOrBack_A, GPIO.HIGH)
+        GPIO.output(self.ForwardOrBack_B, GPIO.LOW)
+        for i in range(4):
+            globals()['EN_'+str(i)].ChangeDutyCycle(13)
+
+    def backword(self):
+        # All wheels move backword
+        GPIO.output(self.ForwardOrBack_A, GPIO.LOW)
+        GPIO.output(self.ForwardOrBack_B, GPIO.HIGH)
+        for i in range(4):
+            globals()['EN_'+str(i)].ChangeDutyCycle(13)
+
+    def turnLeft(self):
+        # Left wheels move backword and other wheels move forword
+        GPIO.output(self.LeftOrRight_A, GPIO.HIGH)
+        GPIO.output(self.LeftOrRight_B, GPIO.LOW)
+        for i in range(4):
+            globals()['EN_'+str(i)].ChangeDutyCycle(18)
+
+    def turnRight(self):
+        # Right wheels move backword and other wheels move forword
+        GPIO.output(self.LeftOrRight_A, GPIO.LOW)
+        GPIO.output(self.LeftOrRight_B, GPIO.HIGH)
+        for i in range(4):
+            globals()['EN_'+str(i)].ChangeDutyCycle(18)
+
+    def stop(self):
+        self.reset()
+
+    def quit(self):
+        self.reset()
+        for i in range(4):
+            globals()['EN_'+str(i)].stop()
+        GPIO.cleanup()
+
+    def carDirection(self, direction):
+        '''
+        Car move according to the input paramter - direction
+        '''
+        if direction == 'Forward':
+            self.forword()
+        elif direction == 'Back':
+            self.backword()
+        elif direction == 'Left':
+            self.turnLeft()
+        elif direction == 'Right':
+            self.turnRight()
+        elif direction == 'Stop':
+            self.stop()
+        elif direction == 'Quit':
+            self.quit()
+
+
+if __name__ == '__main__':
+    carMove = DriveCar()
+    app = Bottle()
+
+    @app.get("/")
+    def car():
+        return template("car")
+
+    @app.post("/cmd")
+    def cmd():
+        direction = request.body.read().decode()
+        carMove.carDirection(direction)
+        return "OK"
+
+    app.run(host='0.0.0.0', port=8080, debug=True)  # 开启服务</code></pre>
+                    <h4>html文件</h4>
+                    <p>car.html</p>
+<pre><code class="language-javascript line-numbers">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Raspberry Pi Car&lt;/title&gt;
+    &lt;script src="http://code.jquery.com/jquery.js"&gt;&lt;/script&gt;
+    
+    &lt;style type="text/css"&gt;
+        body {
+            background-color: #E5E5E5FF
+        }
+
+        button{
+            height: 90px;
+            width: 90px;
+            border: 5px solid #ECC958;
+            border-radius: 30px;
+            font-size: 50px;
+            font-weight: bolder;
+            font-family: Helvetica, Arial, sans-serif;
+            font-style: italic;
+            text-align: center;
+            color: gray;
+        }
+
+        #Forward {
+            margin-top: 50px;
+            margin-left: 200px;
+            margin-bottom: 10px;
+        }
+
+        #Left {
+            margin-left: 100px;
+            margin-bottom: 5px;
+        }
+
+        #Stop {
+            margin-left: 5px;
+            margin-bottom: 5px;
+        }
+
+        #Right {
+            margin-left: 5px;
+            margin-bottom: 5px;
+        }
+
+        #Back {
+            margin-top: 5px;
+            margin-left: 200px;
+        }
+
+        #Quit {
+            margin-left: 100px;
+            margin-top: 50px;
+        }
+
+    &lt;/style&gt;
+    
+&lt;/head&gt;
+
+&lt;body&gt;
+    &lt;div&gt;
+        &lt;button id="Forward" style="background: palegoldenrod"&gt;F&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+        &lt;button id='Left' style="background: palegoldenrod"&gt;L&lt;/button&gt;
+        &lt;button id='Stop' style="background: palegoldenrod"&gt;S&lt;/button&gt;
+        &lt;button id='Right' style="background: palegoldenrod"&gt;R&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+        &lt;button id='Back' style="background: palegoldenrod"&gt;B&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+        &lt;button id='Quit' style="background: palegoldenrod"&gt;Q&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;script type="text/javascript"&gt;
+        var sUserAgent = navigator.userAgent.toLowerCase();
+        if (/ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test(sUserAgent)) {
+            $(function () {
+                $("button").mouseenter(function () {
+                    document.getElementById(this.id).style.background="#ECC958";
+                    $.post("/cmd", this.id, function (data, status) {});
+                });
+                $("button").mouseleave(function () {
+                    document.getElementById(this.id).style.background="palegoldenrod";
+                    $.post("/cmd", "Stop", function (data, status) {});
+                });
+            });
+        } else {
+            $(function () {
+                $("button").mousedown(function () {
+                    document.getElementById(this.id).style.background="#ECC958";
+                    $.post("/cmd", this.id, function (data, status) {});
+                });
+                $("button").mouseup(function () {
+                    document.getElementById(this.id).style.background="palegoldenrod";
+                    $.post("/cmd", "Stop", function (data, status) {});
+                });
+            });
+        }
+    &lt;/script&gt;
+&lt;/body&gt;
+
+&lt;/html&gt;</code></pre>
+                    <p>控制界面如下所示：</p>
+                    <img src="../images/html.png">
+                    <hr/>
+
+                    <h2 id="sectionD3" class="show">3.使用 Wechat 控制</h2> 
+                    <p>使用 Wechat 进行控制时仍然需要用 putty 进入树莓派的 Linux 界面，输入代码运行 server.py 文件，关于方向的一些图片使用了Adobe Ai 进行设计。用微信编写时 index、 logs、utils目录下的文件没变(只在 app.js 中加入了 postURL 的全局变量，改动了 app.json 中的标题名)。</p>
+                    <h4>python文件</h4>
+                    <p>server.py</p>
+<pre><code class="language-javascript line-numbers">from car_web import DriveCar
+from bottle import get, post, request, template, Bottle
+
+carMove = DriveCar()
+app = Bottle()
+
+@app.post("/cmd")
+def cmd():
+    direction = request.body.read().decode()
+    carMove.carDirection(direction)
+    return "OK"
+
+app.run(host='0.0.0.0', port=8080, debug=True)  # 开启服务</code></pre>
+                    <h4>小程序文件</h4>
+                    <p>Pages\link 目录下的文件：</p>
+                    <p>link.js</p>
+<pre><code class="language-javascript line-numbers">// pages/link/link.js
+const app = getApp()
+
+Page({
+
+    /**
+     * 页面的初始数据
+     */
+    data: {
+        logo: "/images/rasp-logo.png",
+        url: "Please enter the link address (eg: http://x.x.x.x:8080)",
+        linkBtn: "Link",
+        reqURL: "",
+        message1: "1. 手机需要与树莓派位于同一局域网中",
+        message2: "2. IP地址书写时不要有空格",
+        message3: "3. 端口号为8080"
+    },
+
+    getURL: function(event){
+        this.setData({
+            reqURL: event.detail.value
+        })
+    },
+
+    linkClicked: function(event){
+        let that = this;
+        // 需要判断能否能连接到服务器地址
+        wx.request({
+            url: that.data.reqURL,
+            success: function (res) {
+                // 在这里获取POST请求地址，然后赋值给全局变量，供control页面调用
+                console.log(that.data.reqURL)
+                app.globalData.postURL = that.data.reqURL+'/cmd'
+
+                // 跳转到control页面
+                wx.navigateTo({
+                    url: '/pages/control/control',
+                })
+            },
+            
+            fail: function (res) {
+                wx.showModal({
+                    title: 'Error',
+                    content: 'Please check the server address!',
+                })
+            }
+        })
+    },
+
+})</code></pre>       
+                    <p>link.json</p>
+<pre><code class="language-javascript line-numbers">{
+  "usingComponents": {}
+}</code></pre>
+                    <p>link.wxml</p>
+<pre><code class="language-javascript line-numbers"><!--pages/link/link.wxml-->
+&lt;view class="logIn"&gt;
+    &lt;view class="logo"&gt;
+        &lt;image id="logo" style="width:400rpx; height:400rpx" src="{{logo}}"&gt;&lt;/image&gt;
+    &lt;/view&gt;
+    &lt;input class="textbox" type="text" focus="true" cursor="16" placeholder="{{url}}" confirm-type="done" bindinput="getURL"&gt;&lt;/input&gt;
+    &lt;view class="messages"&gt;
+        注意：
+        &lt;view&gt;&lt;text&gt;{{message1}}&lt;/text&gt;&lt;/view&gt;
+        &lt;view&gt;&lt;text&gt;{{message2}}&lt;/text&gt;&lt;/view&gt;
+        &lt;view&gt;&lt;text&gt;{{message3}}&lt;/text&gt;&lt;/view&gt;
+    &lt;/view&gt;
+    &lt;button class="link" hover-start-time="hover" bindtap="linkClicked"&gt;{{linkBtn}}&lt;/button&gt;
+&lt;/view&gt;</code></pre>
+                    <p>link.wxss</p>
+<pre><code class="language-javascript line-numbers">/* pages/link/link.wxss */
+.logo {
+  display: flex;
+  justify-content: center;
+  margin-top: 50rpx;
+}
+
+.textbox{
+    border: 1rpx solid black;
+    border-radius: 30rpx;
+    font-style: italic;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: smaller;
+    text-align: center;
+    margin: 100rpx 20rpx 50rpx 20rpx;
+    height: 60rpx;
+}
+
+.messages{
+    font-family: Arial, Helvetica, sans-serif;
+    margin-left: 100rpx;
+    margin-bottom: 200rpx;
+}
+
+.link{
+  background-color: rgb(69, 180, 69);
+  margin-left: 300rpx;
+  margin-right: 300rpx;
+  border-radius: 15rpx;
+  height: 80rpx;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.hover{
+    background-color: lightgreen;
+}</code></pre>
+                    <p>Pages\control 目录下的文件</p>
+                    <p>control.js</p>
+<pre><code class="language-javascript line-numbers">// pages/control/control.js
+const app = getApp()
+
+Page({
+
+    /**
+     * 页面的初始数据
+     */
+    data: {
+        opacityBtn: [1,1,1,1,1,1],
+        "forwardBtn": "/images/forward.svg",
+        "leftBtn": "/images/left.svg",
+        "stopBtn": "/images/pause.svg",
+        "rightBtn": "/images/right.svg",
+        "backBtn": "/images/backward.svg",
+        "quitBtn": "/images/quit.svg",
+    },
+
+    carRun: function(event) {
+        if (event.currentTarget.dataset.direction !== "Stop") {
+            this.setData({
+                stopBtn: "/images/start.svg",
+            })
+        }
+
+        switch (event.currentTarget.dataset.direction) {
+            case "Forward":
+                this.setData({
+                    "opacityBtn[0]" :'0.5'
+                })
+                break;
+            case "Left":
+                this.setData({
+                    "opacityBtn[1]": '0.5'
+                })
+                break;
+            case "Stop":
+                this.setData({
+                    "opacityBtn[2]": '0.5'
+                })
+                break;
+            case "Right":
+                this.setData({
+                    "opacityBtn[3]": '0.5'
+                })
+                break;
+            case "Back":
+                this.setData({
+                    "opacityBtn[4]": '0.5'
+                })
+                break;
+            case "Quit":
+                this.setData({
+                    "opacityBtn[5]": '0.5'
+                })
+                break;
+        }
+
+        wx.request({
+            url: this.data.postURL,
+            data: event.currentTarget.dataset.direction,
+            method: "POST",
+            success: function() {},
+            fail: function() {}
+        })
+
+    },
+
+    carStop: function(event) {
+        if (event.currentTarget.dataset.direction !== "Stop"){
+            this.setData({
+                stopBtn: "/images/pause.svg",
+            })
+        }
+
+        switch (event.currentTarget.dataset.direction) {
+            case "Forward":
+                this.setData({
+                    "opacityBtn[0]": '1'
+                })
+                break;
+            case "Left":
+                this.setData({
+                    "opacityBtn[1]": '1'
+                })
+                break;
+            case "Stop":
+                this.setData({
+                    "opacityBtn[2]": '1'
+                })
+                break;
+            case "Right":
+                this.setData({
+                    "opacityBtn[3]": '1'
+                })
+                break;
+            case "Back":
+                this.setData({
+                    "opacityBtn[4]": '1'
+                })
+                break;
+            case "Quit":
+                this.setData({
+                    "opacityBtn[5]": '1'
+                })
+                break;
+        }
+        
+        wx.request({
+            url: this.data.postURL,
+            data: "Stop",
+            method: "POST",
+            success: function() {},
+            fail: function() {}
+        })
+    },
+    
+    /**
+     * 生命周期函数--监听页面加载
+     */
+    onLoad: function(options) {
+        this.setData({
+            postURL: app.globalData.postURL,
+        })
+    },
+
+})</code></pre>
+                    <p>control.json</p>
+<pre><code class="language-javascript line-numbers">{
+    "usingComponents": {},
+    "enablePullDownRefresh": false,
+    "disableScroll": true
+}</code></pre>
+                    <p>control.wxml</p>
+<pre><code class="language-javascript line-numbers"><!--pages/control/control.wxml-->
+&lt;view class="control"&gt;
+    &lt;!-- 小车运动控制按钮 --&gt;
+    &lt;image class="button" id="forward" src="{{forwardBtn}}" style="opacity:{{opacityBtn[0]}}" bindtouchstart="carRun" data-direction='Forward' bindtouchend="carStop"&gt;&lt;/image&gt;
+    &lt;image class="button" id="left" src="{{leftBtn}}" style="opacity:{{opacityBtn[1]}}" bindtouchstart="carRun" data-direction='Left' bindtouchend="carStop"&gt;&lt;/image&gt;
+    &lt;image class="button" id="stop" src="{{stopBtn}}" style="opacity:{{opacityBtn[2]}}" bindtouchstart="carRun" data-direction='Stop' bindtouchend="carStop"&gt;&lt;/image&gt;
+    &lt;image class="button" id="right" src="{{rightBtn}}" style="opacity:{{opacityBtn[3]}}" bindtouchstart="carRun" data-direction='Right' bindtouchend="carStop"&gt;&lt;/image&gt;
+    &lt;image class="button" id="back" src="{{backBtn}}" style="opacity:{{opacityBtn[4]}}" bindtouchstart="carRun" data-direction='Back' bindtouchend="carStop"&gt;&lt;/image&gt;
+    &lt;image class="button" id="quit" src="{{quitBtn}}" style="opacity:{{opacityBtn[5]}}" bindtouchstart="carRun" data-direction='Quit'&gt;&lt;/image&gt;
+&lt;/view&gt;</code></pre>
+                    <p>control.wxss</p>
+<pre><code class="language-javascript line-numbers">/* pages/control/control.wxss */
+.button{
+    width: 150rpx;
+    height: 150rpx;
+    border-radius: 50rpx;
+    display: flex;
+}
+
+#forward{
+    margin-top: 150rpx;
+    margin-left: 260rpx;
+}
+
+#left{
+    margin-top: 20rpx;
+    margin-left: 90rpx;
+}
+
+#stop{
+    margin-top: -150rpx;
+    margin-left: 260rpx;
+}
+
+#right{
+    margin-top: -150rpx;
+    margin-left: 430rpx;
+}
+
+#back{
+    margin-top: 20rpx;
+    margin-left: 260rpx;
+}
+
+#quit{
+    margin-top: 20rpx;
+    margin-left: 500rpx;
+}</code></pre>
+                    <p>微信小程序发布后在手机上运行的图片如下所示：</p>
+                    <img src="../images/wechat1.png">
+                    <img src="../images/wechat2.png">
+                    <hr/>
+
+                    <h2 id="sectionD4" class="show">4.&nbsp;参考说明</h2>
+                    <h3>4.1&nbsp;文档参考</h3>
+                    <p>本文档参考了以下内容：
+                        <ul>
+                            <li>有关网页版的控制，参考了：<a href="https://blog.csdn.net/weixin_42534940/article/details/81416578">用python3实现网页版raspberry pi（树莓派）小车控制</a>、<a href="https://blog.csdn.net/qq_41923622/article/details/85850780">简单WiFi控制小车系统（树莓派＋python＋web控制界面)</a>和<a href="https://blog.csdn.net/weixin_42534940/article/details/81415768">用python3实现raspberry pi（树莓派）4驱小车控制程序</a></li>
+                            <li>有关小程序的控制，参考了：、<a href="https://blog.csdn.net/weixin_42534940/article/details/81416977">微信小程序实现树莓派（raspberry pi）小车控制</a></li>
+                        </ul>
+                    </p>
+                    <h3>4.2&nbsp;其他参考</h3>
+                    <p>有关其他树莓派控制的知识，可参考：
+                        <ul>
+                            <li>有关用itchat控制，可参考：<a href="https://blog.csdn.net/vr7jj/article/details/72453435">树莓派养成之路 ——微信远程GPIO控制</a>（慎重使用，似乎会遇到微信微信网页版无法使用的问题）。</li>
+                            <li>有关用手机控制树莓派，可参考：<a href="http://blog.lxx1.com/3214">树莓派笔记15：手机控制树莓派小车</a>(不使用微信，在手机端写app)</li>
+                            <li>有关手机ssh和vnc的使用，可参考：<a href="https://www.cnblogs.com/sunsuoli/p/11088565.html">用手机控制树莓派</a>（苹果手机也有相应的ssh和vnc）</li>
+                        </ul>
+                    </p>
+                    <h3>4.3&nbsp;知识学习</h3>
+                    <p>相关知识的学习，可参考：
+                        <ul>
+                            <li>有关tkinter的相关知识，可参考：<a href="https://www.jianshu.com/p/c9fb28367015">给大家分享一篇 tkinter python（图形开发界面）</a>和<a href="https://blog.csdn.net/liuxu0703/article/details/54428405">[Tkinter 教程12] 布局管理 (Pack Place Grid)</a></li>
+                            <li>有关itchat的相关知识，可参考：<a href="https://itchat.readthedocs.io/zh/latest/#_5">itchat</a></li>
+                            <li>有关python的教程，可参考：<a href="https://www.liaoxuefeng.com/wiki/1016959663602400">廖雪峰的官方网站</a>（或者自己找书学习）</li>
+                            <li>有关html5的学习，可参考<a href="https://developer.mozilla.org/zh-CN/docs/Learn">学习 Web 开发</a>和<a href="https://www.bilibili.com/read/cv3324766">2019 前端学习路线</a></li>
+                            <li>有关小程序的教程，可参考：<a href="https://developers.weixin.qq.com/miniprogram/dev/framework/quickstart/#%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%AE%80%E4%BB%8B">微信官方文档</a></li>              
+                        </ul>
+                    </p>
+                    <p>如有不足之处，请指正</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../scripts/prism.js"></script>
+</body>
+</html>

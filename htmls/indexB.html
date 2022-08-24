@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head lang="zh_CN">
+	<meta charset="utf-8">
+	<title>树莓派小车</title>
+	<link rel="shortcut icon" type="image/x-icon" href="../images/raspberrypi.ico">
+    <link rel="stylesheet" href="../icons/iconfont.css">
+    <link rel="stylesheet" type="text/css" href="../styles/styleA.css" media="screen and (min-width: 1200px)">
+    <link rel="stylesheet" type="text/css" href="../styles/styleB.css" media="screen and (max-width: 1200px)">
+    <link rel="stylesheet" type="text/css" href="../styles/styleC.css" media="screen and (max-width: 800px)">
+    <script type="text/javascript" src="../scripts/jQuery.js"></script>
+    <script type="text/javascript" src="../scripts/menu.js"></script>
+    <link rel="stylesheet" href="../styles/prism.css"/>
+</head>
+
+<body>
+    <div id="container">
+    	<div class="head">
+    		<img class="headImg" src="../images/raspberrypi.png">
+    		<h1 class="headTitle">树莓派小车制作参考文档</h1>
+    		<div class="headNav">
+    			<ul>
+    				<li><a class="headList" style="color: #3F3F3FFC" href="#">小车制作</a></li>
+    				<li><a class="headList" href="../../algorithm/algorithm.html">算法学习</a></li>
+    			</ul>
+    		</div>
+    	</div>
+
+    	<div class="menu">
+            <div class="menuTitle">
+                <span class="iconfont icon-home"></span>
+                小车参考文档
+            </div>
+            <div class="menuNav">
+                <ul>
+                    <li class="list"><a id="item1" href="../index.html"><span>关于参考文档</span><i class="iconfont nav-more"></i></a></li>
+                    <li class="list now"><a id="item2" href="#"><span>系统配置与安装</span><i class="iconfont nav-more"></i></a>
+                        <ul>
+                            <li><a href="#sectionB1"><span>系统安装</span></a></li>
+                            <li><a href="#sectionB2"><span>远程登陆</span></a></li>
+                            <li><a href="#sectionB3"><span>WiFi配置</span></a></li>
+                            <li><a href="#sectionB4"><span>系统换源</span></a></li>
+                            <li><a href="#sectionB5"><span>其他安装</span></a></li>
+                            <li><a href="#sectionB6"><span>软件下载及其他说明</span></a></li>
+                        </ul>
+                    </li>
+                    <li class="list"><a id="item9" href="indexC.html"><span>小车组装</span><i class="iconfont nav-more"></i></a></li>
+                    <li class="list"><a id="item10" href="indexD.html"><span>小车基本运动</span><i class="iconfont nav-more"></i></a> </li>
+                </ul>
+            </div>
+        </div>
+
+    	<div class="articals">
+            <div class="artical" id="sectionB">
+                <div class="header"><h1>系统安装与配置</h1></div>
+                <div class="main">
+                    <h2 id="sectionB1" class="show">1.&nbsp;系统安装</h2>
+                    <h3>1.1&nbsp;系统安装</h3>
+                    <p>物品：树莓派、16G Micro SD卡(推荐)、读卡器</p>
+                    <p>选用树莓派官方定制的操作系统Raspbian(似乎最新的系统会出现各种软件的依赖问题，导致部分程序无法安装),Raspbian系统分为轻量版和桌面版两种。桌面版有图形化显示界面，并且预装了一些软件，依据个人喜好下载其中一个就可以。</p>
+                    <img src="../images/systemR.png">
+                    <p>有关其他系统的介绍可参考：<a href="http://shumeipai.nxez.com/download#os">树莓派实验室</a>或<a href="https://www.raspberrypi.org/downloads/">官方网站</a>。如图为官网上的其他系统：</p>
+                    <img src="../images/system.png">
+                    <p>使用BalenaEtcher或者win32diskimager进行安装。选择要安装的.img文件、选择SD卡对应的磁盘分区进行安装,仅需几步即可完成。</p>
+                    <img src="../images/Etcher.png">
+                    <p>若之前已经安装过系统，想使用其他系统，使用SD Card Formatter进行格式化以后再安装。</p>
+                    <img src="../images/Formatter.png">
+                    <h3>1.2&nbsp;开启ssh服务</h3>
+                    <p>由于目前树莓派默认不开启SSH服务，安装完成后先别拔出SD卡，进入boot的分区(此分区为系统的/boot文件夹，容量很小，这是正常的)，新建文本文档ssh.txt，然后把后缀名.txt删掉，即可开启ssh服务。若提示要使用磁盘，请进行格式化时不用格式化，否则安装好的系统就会被清除</p>
+                    <p>之后再新建文本文档wpa_supplicant.txt，并将后缀名改为.conf，为之后的WiFi配置做准备。</p>
+                    <img src="../images/Boot.png">
+                    <hr/>
+
+                    <h2 id="sectionB2" class="show">2.&nbsp;远程登陆</h2>
+                    <h3>2.1&nbsp;登陆树莓派</h3>
+                    <p>若有显示屏可直接用HDMI线将树莓派连接至显示屏显示,并在boot的分区下配置相应的config.txt文件。一般笔记本的HDMI接口是用来输出的，不支持视频输入功能，故本例中选择网线使电脑与树莓派相连。</p>
+                    <p>连接电源树莓派启动时，指示灯会亮起，3b+上，红色灯亮起时，为接通电源状态，绿色灯亮起时，为系统在对SD卡做读写操作。树莓派启动后，就可以通过SSH连接登录系统。用网线连接树莓派后，打开PuTTY软件，登陆树莓派。IP地址写raspberrypi即可，端口为22，用ssh连接，如下所示：</p>
+                    <img src="../images/PuTTY.png">
+                    <p>出现的Security Alert点否就行，对于Raspbian系统，默认的用户名是pi，密码是raspberry(密码输入时不会有任何显示)。登陆成功之后如下图显示：</p>
+                    <img src="../images/Login.png">
+                    <h3>2.2&nbsp;密码修改</h3>
+                    <p>若认为系统的默认密码不安全，可通过如下命令修改密码</p>
+<pre><code class="language-javascript line-numbers"># 修改pi密码
+sudo passwd pi
+
+# 修改root密码
+sudo passwd root</code></pre>
+                    <h3>2.3&nbsp;扩展系统</h3>
+                    <p>把系统扩展到整个SD卡，使得系统资源利用率更高。输入命令<code>sudo raspi-config</code>进入如下界面，选择Advanced Options选项，再选择Expand Filesystem选项，重启即可生效，如下所示：</p>
+                    <img src="../images/Expand.png">
+                    <hr/>
+
+                    <h2 id="sectionB3" class="show">3.&nbsp;WiFi配置</h2>
+                    <h3>3.1&nbsp;无线网配置</h3>
+                    <p>由于小车必须脱离网线才能自由运动，故应使用无线网连接树莓派，下述为推荐使用的方式。</p>
+                    <P>输入<code>sudo nano /etc/wpa_supplicant/wpa_supplicant.conf</code>打开wpa_supplicant.conf文件，输入下列命令配置WiFi:</P>
+<pre><code class="language-javascript line-numbers">country=CN
+#ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+#update_config=1
+ctrl_interface=/var/run/wpa_supplicant
+#ap_scan=1
+network={
+    ssid="TP-LINK_CBAA"
+    psk="gqj19491001"
+    key_mgmt=WPA-PSK
+    priority=3
+}</code></pre>
+                    <p>priority表示优先度，越大表示越先连接；key_mgmt表示WiFi加密方式，手机热点可不写；若要添加多个网络，可再写network。</p>
+                    <p>此外，也可以通过修改<code>/etc/network/interfaces</code>进行网络的配置，改为如下状况。建议仅使用其中一种方式，之前试过两种方式一同运行，但出现了错误，导致无法再登陆树莓派。</p>
+<pre><code class="language-javascript line-numbers">auto lo 
+iface lo inet loopback 
+auto eth0 
+iface eth0 inet dhcp 
+allow-hotplug wlan0 
+auto wlan0 
+iface wlan0 inet dhcp 
+wpa-ssid YOUR-SSID-HERE 
+wpa-psk YOUR-PASSWORD-HERE</code></pre>       
+                    <h3>3.2&nbsp;无线网登陆树莓派</h3>
+                    <p>先用无线网登陆树莓派使之连上WiFi可为后续操作带来一定便利，因为一些程序安装不了很可能就是树莓派未连网。在wpa_supplicant.conf文件中加入自己手机的热点，优先级先设置为最高，之后输入<code>sudo reboot</code>重启树莓派。开启手机热点，电脑连接手机的无线网(否则无法登陆树莓派)，再使用PuTTY登陆树莓派，IP地址写raspberrypi即可，输入<code>ifconfig</code>查看wlan0下inet的IP地址，后续登陆改为此IP地址。</p>
+                    <hr/>
+
+                    <h2 id="sectionB4" class="show">4.&nbsp;系统换源</h2>
+                    <p>由于树莓派官方服务器速度较慢，安装几M的程序都会花费很久，故一般将其换为国内自身的软件源。以清华软件源为例，相关命令如下所示：</p>
+                    <p>输入命令</p>
+<pre><code class="language-javascript line-numbers">sudo nano /etc/apt/sources.list</code></pre>
+                    <p>用#注释掉原文件内容，用以下内容取代：</p>
+<pre><code class="language-javascript line-numbers">deb http://mirrors.tuna.tsinghua.edu.cn/raspbian/raspbian/ stretch main contrib non-free rpi
+deb-src http://mirrors.tuna.tsinghua.edu.cn/raspbian/raspbian/ stretch main contrib non-free rpi</code></pre>
+                    <p>树莓派系统默认使用nano做为编辑器，修改完成后使用ctrl+x退出，退出时会提示是否保存文件, 按Y即可。</p>
+                    <p>输入命令</p>
+<pre><code class="language-javascript line-numbers">sudo nano /etc/apt/sources.list.d/raspi.list</code></pre>
+                    <p>用#注释掉原文件内容，用以下内容取代：</p>
+<pre><code class="language-javascript line-numbers">deb http://mirrors.tuna.tsinghua.edu.cn/raspberrypi/ stretch main ui
+deb-src http://mirrors.tuna.tsinghua.edu.cn/raspberrypi/ stretch main ui</code></pre>
+                    <p>最后使用<code>sudo apt-get update</code>命令，更新软件源列表；使用<code>sudo apt-get upgrade</code>命令,比较软件源更新依赖关系。此外，也可以使用其他的软件源，如阿里云、中国科技大学、豆瓣、中国科学技术大学等。</p>
+                    <hr/>
+
+                    <h2 id="sectionB5" class="show">5.&nbsp;其他安装</h2>
+                    <h3>5.1&nbsp;远程桌面</h3>
+                    <p>使用PuTTY登陆的界面是命令行界面，若要显示图形化界面，需要安装VNC Viewer。在树莓派上输入以下命令：</p>
+<pre><code class="language-javascript line-numbers"># 安装服务端
+sudo apt-get install tightvncserver
+# 开启VNC
+tightvncserver
+# 首次运行时，会做初始化设置，按提示设置访问权限、连接密码等信息</code></pre>
+                    <p>同时在电脑上下载VNC Viewer，树莓派启动VNC服务后，在电脑端输入[IP地址]:[代号]，如：10.15.140.115:1，再输入密码连接树莓派。</p>                   
+                    <h3>5.2&nbsp;samba服务</h3>
+                    <p>由于树莓派使用Linux系统，与Windows的交互不是那么容易。此外，树莓派自带的编译器没有自己在电脑端的VS Code、PyCharm等好用，也可以在树莓派上安装Linux版的编译器，但似乎由于性能不足，根本无法启动或会变得很卡，也许新版的树莓派相关情况会好一些，
+                    因此需要通过samba服务进行简单的文件共享。</p>
+<pre><code class="language-javascript line-numbers"># 安装samba
+sudo apt-get install samba
+
+# 修改samba配置
+sudo nano /etc/samba/smb.conf
+
+# 文件的最后加上如下内容
+[share]           #共享文件夹的名称， 将在网络上以此名称显示
+    path = /home/pi/Desktop/         #共享文件的路径，默认使用桌面文件夹,也可以自己新建
+    valid users = pi        #允许访问的用户
+    browseable = yes        #允许浏览
+    public = yes        #共享开放
+    writable = yes        #可写
+
+# 开启samba服务，仅需开启一次
+sudo /etc/init.d/samba start
+
+# 添加samba密码
+sudo smbpasswd -a pi</code></pre>       
+                    <p>然后在Windows上执行win + r, 输入\\[IP地址]\share，如\\10.15.140.115\share即可打开相应文件夹，若要使之挂载在电脑上，可添加映射网络驱动器。</p>   <h3>5.3&nbsp;安装vim</h3>
+                    <p>树莓派自带的nano较为简陋，可通过安装vim来代替，其具有代码补完、编译及错误跳转等一系列方便的功能，被广泛使用。</p>
+<pre><code class="language-javascript line-numbers"># 安装vim
+sudo apt-get install vim
+
+# 修改配置
+sudo vim /etc/vim/vimrc
+
+# 在文件末尾添加
+# 语法高亮
+syntax on
+# 显示行号
+set nu</code></pre>                       
+                    <h3>5.4&nbsp;安装谷歌拼音输入法</h3>
+                    <p>用VNC登陆树莓派后，其自带的输入法无中文输入功能，如果要在树莓派上浏览中文网站，几乎寸步难行，当然从另一方面而言，这个功能也比较鸡肋。</p>
+<pre><code class="language-javascript line-numbers"># 切换到root权限
+sudo -i
+
+# 直接通过资源库安装谷歌拼音和Fcitx模块以及Sunpinyin模块
+sudo apt-get install fcitx fcitx-googlepinyin fcitx-module-cloudpinyin fcitx-sunpinyin
+
+# 安装完后重启树莓派
+sudo reboot</code></pre>
+                    <p>鼠标右键点击右上角键盘图标，点击配置，可查看系统中全部的输入法，搜索谷歌拼音，使之加入Input Method。使用输入法前需点击右上角键盘图标，之后按shiht键即可切换。</p>
+                    <img src="../images/Input.png">
+                    <img src="../images/Pinyin.png">
+                    <hr/>
+                    
+                    <h2 id="sectionB6" class="show">6.&nbsp;软件下载及其他说明</h2> 
+                    <h3>6.1&nbsp;软件下载</h3>
+                    <p>相关软件相关下载地址为：
+                        <ul>
+                            <li><a href="https://www.raspberrypi.org/downloads/">Raspbian</a></li>
+                            <li><a href="https://www.balena.io/etcher/">BalenaEtcher</a></li>
+                            <li><a href="https://www.sdcard.org/downloads/formatter/">SD Card Formatter</a></li>
+                            <li><a href="https://www.putty.org/">PuTTY</a></li>
+                            <li><a href="https://www.realvnc.com/en/connect/download/viewer/">VNC Viewer</a></li>
+                        </ul>
+                    </p>
+                    <h3>6.2&nbsp;其他说明</h3>
+                    <p>文档的一些参考为：
+                        <ul>
+                            <li>有关系统安装参考了：<a href="https://www.jianshu.com/p/467335f07e05">树莓派3b+安装Raspbian系统</a>、<a href="https://blog.csdn.net/Sheildjiang/article/details/79590950">笔记本一根网线ssh连上树莓派3B，第一次必要的配置（固定静态ip静态地址很重要）</a>及<a href="https://blog.csdn.net/hnlyzxy123/article/details/54340797">树莓派3的配置与安装</a></li>
+
+                            <li>有关系统换源参考了：<a href="https://blog.csdn.net/la9998372/article/details/77886806">为树莓派更换国内镜像源</a></li>
+                            <li>有关samba服务的配置参考了：<a href="https://blog.csdn.net/zlllg/article/details/88547648">树莓派如何安装samba服务</a></li>
+                            <li>有关中文环境的配置可参考：<a href="https://blog.csdn.net/u012313335/article/details/53519302">树莓派(Raspberry Pi 3) - Raspbian中文输入法安装及中文环境配置</a></li>
+                            <li>有关输入法更改参考了：<a href="https://blog.csdn.net/qq_41204464/article/details/82941348">树莓派 安装谷歌拼音输入法（树莓派官方版系统、基于Debian）</a></li>
+                            <li>有关vim的一些介绍可参考：<a href="https://www.runoob.com/linux/linux-vim.html">菜鸟教程</a></li>
+                            <li>有关树莓派一些介绍可参考：<a href="http://shumeipai.nxez.com/">树莓派实验室</a></li>
+                            <li>如使用HDMI，有关分辨率的修改可参考：<a href="https://blog.csdn.net/CoekJin/article/details/52498443">树莓派修改分辨率</a></li>
+                            <li>有关树莓派安装及小车的制作可参考：<a href="https://www.bilibili.com/video/av11549053/?p=13">【公开课】树莓派教程（2016）</a></li>
+                        </ul>
+                    </p>
+                    <p>如有不足之处，还请指正</p>
+                </div>
+            </div>
+    </div>
+    <script src="../scripts/prism.js"></script>
+</body>
+</html>
